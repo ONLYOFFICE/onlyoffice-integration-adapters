@@ -108,6 +108,7 @@ require (
 	github.com/go-micro/plugins/v4/registry/kubernetes v1.1.1
 	github.com/go-micro/plugins/v4/registry/mdns v1.2.0
 	github.com/go-micro/plugins/v4/server/http v1.2.1
+	github.com/go-micro/plugins/v4/store/memory v1.2.0
 	github.com/go-micro/plugins/v4/wrapper/breaker/hystrix v1.2.0
 	github.com/go-micro/plugins/v4/wrapper/ratelimiter/uber v1.2.0
 	github.com/go-micro/plugins/v4/wrapper/select/roundrobin v1.2.0

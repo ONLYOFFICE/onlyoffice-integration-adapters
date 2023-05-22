@@ -33,6 +33,7 @@ import (
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/onlyoffice"
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/registry"
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/service/repl"
+	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/storage"
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/trace"
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/worker"
 	"go-micro.dev/v4"
@@ -125,6 +126,7 @@ func (b bootstrapper) Bootstrap() *fx.App {
 		fx.Provide(crypto.NewEncryptor),
 		fx.Provide(crypto.NewJwtManager),
 		fx.Provide(crypto.NewHasher),
+		fx.Provide(storage.NewStorage),
 		fx.Provide(onlyoffice.NewOnlyofficeFileUtility),
 		fx.Provide(b.modules...),
 		fx.Invoke(b.invokables...),

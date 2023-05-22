@@ -178,6 +178,8 @@ github.com/go-micro/plugins/v4/registry/mdns v1.2.0 h1:BsGnco+PgycvSX+HS0XbeUQEP
 github.com/go-micro/plugins/v4/registry/mdns v1.2.0/go.mod h1:re0JvO5F56n59WEDaAKj2jtboKa2dklAd6iWyz5xa54=
 github.com/go-micro/plugins/v4/server/http v1.2.1 h1:Cia924J90rgFT/4qWWvyLvN+XqEm5T9tiQyQ+GU4bOQ=
 github.com/go-micro/plugins/v4/server/http v1.2.1/go.mod h1:YuAjaSPxcn3LI8j2FUsqx0Rxunrj4YwDV41Ax76rLl0=
+github.com/go-micro/plugins/v4/store/memory v1.2.0 h1:5VyItIsQ2xbUO+R62/ZHFS7P2L/7nYKc1tRLA5MdjeI=
+github.com/go-micro/plugins/v4/store/memory v1.2.0/go.mod h1:v2nkqOB1JFldKdgNJrFzeaZsYcbWXWJjGEt73jFQM7o=
 github.com/go-micro/plugins/v4/wrapper/breaker/hystrix v1.2.0 h1:0GYwyoHJ3kfJHYEuzSUH+033Kg924Y6aBSJYbpHAKNg=
 github.com/go-micro/plugins/v4/wrapper/breaker/hystrix v1.2.0/go.mod h1:Ii9bwBo2ADZfQJ8zGMQGh6nNN+8OEBU4VvDbrJjwbsE=
 github.com/go-micro/plugins/v4/wrapper/ratelimiter/uber v1.2.0 h1:VaiAfA2F0tS0ORn0CVSY3UxWH7jjUkWiL7T7KBa7JoM=

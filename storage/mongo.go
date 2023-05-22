@@ -26,7 +26,6 @@ package storage
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/kamva/mgm/v3"
@@ -35,8 +34,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-var _errInvalidResultOption = errors.New("expected to get a non-nil result option")
 
 type mongoStore struct {
 	options store.Options
@@ -63,7 +60,7 @@ func (s *mongoStore) Init(opts ...store.Option) error {
 	return s.configure()
 }
 
-// List all the known records.
+// List all the known documents.
 func (s *mongoStore) List(ctx context.Context, opts ...ReadOption) error {
 	var ops ReadOptions
 	for _, o := range opts {
@@ -91,7 +88,7 @@ func (s *mongoStore) List(ctx context.Context, opts ...ReadOption) error {
 	return cur.Close(ctx)
 }
 
-// Read a single key.
+// Read a single document.
 func (s *mongoStore) Read(ctx context.Context, opts ...ReadOption) error {
 	var options ReadOptions
 	for _, o := range opts {
@@ -114,7 +111,7 @@ func (s *mongoStore) Read(ctx context.Context, opts ...ReadOption) error {
 	return nil
 }
 
-// Write records.
+// Write a document.
 func (s *mongoStore) Write(ctx context.Context, payload any, opts ...WriteOption) error {
 	var options WriteOptions
 	for _, o := range opts {
@@ -131,7 +128,7 @@ func (s *mongoStore) Write(ctx context.Context, payload any, opts ...WriteOption
 	})
 }
 
-// Update records
+// Update a document
 func (s *mongoStore) Update(ctx context.Context, payload any, opts ...WriteOption) error {
 	var options WriteOptions
 	for _, o := range opts {
@@ -150,7 +147,7 @@ func (s *mongoStore) Update(ctx context.Context, payload any, opts ...WriteOptio
 	})
 }
 
-// Delete records with keys.
+// Delete a document with key
 func (s *mongoStore) Delete(ctx context.Context, opts ...DeleteOption) error {
 	var options DeleteOptions
 	for _, o := range opts {

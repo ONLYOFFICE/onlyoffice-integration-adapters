@@ -22,6 +22,7 @@
 // The store package's structures are self-initialized by fx and bootstrapper.
 // Fields are populated via yaml values or env variables. Env variables overwrite
 // yaml configuration.
+// TODO: Refactor the interface
 package storage
 
 import (
