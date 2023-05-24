@@ -53,6 +53,14 @@ func NewBroker(registry registry.Registry, config *config.BrokerConfig) BrokerWi
 	var b broker.Broker
 	var subOpts broker.SubscribeOptions
 
+	if !config.Messaging.Enable {
+		b = memory.NewBroker(bo...)
+		return BrokerWithOptions{
+			Broker:     b,
+			SubOptions: subOpts,
+		}
+	}
+
 	switch config.Messaging.Type {
 	case 1:
 		bo = append(bo, rabbitmq.WithoutExchange())
