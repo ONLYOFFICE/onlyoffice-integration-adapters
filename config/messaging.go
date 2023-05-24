@@ -38,6 +38,8 @@ import (
 type BrokerConfig struct {
 	// Messaging is a nested structure used as a marker for yaml configuration.
 	Messaging struct {
+		// Enable is a broker's enable/disable flag.
+		Enable bool `yaml:"enable" env:"BROKER_ENABLE,overwrite"`
 		// Addrs is a list of broker instances.
 		Addrs []string `yaml:"addresses" env:"BROKER_ADDRESSES,overwrite"`
 		// Type is a broker type field.
@@ -71,7 +73,7 @@ type BrokerConfig struct {
 // A successful Validate returns err == nil. Errors other than nil will
 // cause application to panic
 func (b *BrokerConfig) Validate() error {
-	if b.Messaging.Type > 0 && len(b.Messaging.Addrs) == 0 {
+	if b.Messaging.Enable && len(b.Messaging.Addrs) == 0 && b.Messaging.Type > 0 {
 		return &InvalidConfigurationParameterError{
 			Parameter: "Addrs",
 			Reason:    "Invalid number of addresses",
