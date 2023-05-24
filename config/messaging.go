@@ -71,7 +71,7 @@ type BrokerConfig struct {
 // A successful Validate returns err == nil. Errors other than nil will
 // cause application to panic
 func (b *BrokerConfig) Validate() error {
-	if len(b.Messaging.Addrs) == 0 {
+	if b.Messaging.Type > 0 && len(b.Messaging.Addrs) == 0 {
 		return &InvalidConfigurationParameterError{
 			Parameter: "Addrs",
 			Reason:    "Invalid number of addresses",
