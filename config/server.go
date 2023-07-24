@@ -45,7 +45,7 @@ type ServerConfig struct {
 	// to set X-Version header.
 	//
 	// By default - 0.
-	Version int `yaml:"version" env:"SERVER_VERSION,overwrite"`
+	Version string `yaml:"version" env:"SERVER_VERSION,overwrite"`
 	// Address is the service's address/port.
 	Address string `yaml:"address" env:"SERVER_ADDRESS,overwrite"`
 	// ReplAddress is system service's address.

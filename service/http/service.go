@@ -27,7 +27,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -89,7 +88,7 @@ func NewService(
 
 	service := micro.NewService(
 		micro.Name(strings.Join([]string{serverConfig.Namespace, serverConfig.Name}, ":")),
-		micro.Version(strconv.Itoa(serverConfig.Version)),
+		micro.Version(serverConfig.Version),
 		micro.Context(context.Background()),
 		micro.Server(mserver.NewServer(
 			server.Name(strings.Join([]string{serverConfig.Namespace, serverConfig.Name}, ":")),
@@ -135,7 +134,7 @@ func NewService(
 		chimiddleware.RealIP,
 		chimiddleware.RequestID,
 		chimiddleware.StripSlashes,
-		middleware.Version(strconv.Itoa(serverConfig.Version)),
+		middleware.Version(serverConfig.Version),
 		middleware.Cors(corsConfig.CORS.AllowedOrigins, corsConfig.CORS.AllowedMethods, corsConfig.CORS.AllowedHeaders, corsConfig.CORS.AllowCredentials),
 	)
 

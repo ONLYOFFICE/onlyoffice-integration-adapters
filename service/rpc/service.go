@@ -26,7 +26,6 @@ package rpc
 import (
 	"context"
 	"log"
-	"strconv"
 	"strings"
 	"time"
 
@@ -102,7 +101,7 @@ func NewService(
 
 	service := micro.NewService(
 		micro.Name(strings.Join([]string{rpcConfig.Namespace, rpcConfig.Name}, ":")),
-		micro.Version(strconv.Itoa(rpcConfig.Version)),
+		micro.Version(rpcConfig.Version),
 		micro.Context(context.Background()),
 		micro.Server(server.NewServer(
 			server.Name(strings.Join([]string{rpcConfig.Namespace, rpcConfig.Name}, ":")),

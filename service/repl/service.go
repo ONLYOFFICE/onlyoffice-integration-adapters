@@ -27,7 +27,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/pprof"
-	"strconv"
 	"time"
 
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/config"
@@ -72,7 +71,7 @@ func NewService(
 			middleware.Cors(corsConfig.CORS.AllowedOrigins, corsConfig.CORS.AllowedMethods, corsConfig.CORS.AllowedHeaders, corsConfig.CORS.AllowCredentials),
 			middleware.Secure,
 			middleware.NoCache,
-			middleware.Version(strconv.Itoa(replConfig.Version)),
+			middleware.Version(replConfig.Version),
 		).Then(mux),
 	}
 }
