@@ -3,7 +3,7 @@ module github.com/ONLYOFFICE/onlyoffice-integration-adapters
 go 1.25.3
 
 require (
-	github.com/eko/gocache/lib/v4 v4.2.2
+	github.com/eko/gocache/lib/v4 v4.2.3
 	github.com/eko/gocache/store/freecache/v4 v4.2.3
 	github.com/eko/gocache/store/redis/v4 v4.2.5
 	github.com/prometheus/client_golang v1.23.2
