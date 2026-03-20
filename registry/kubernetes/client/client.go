@@ -1,30 +1,94 @@
-package kubernetes
+package client
 
 import (
 	"crypto/tls"
+	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"path"
+	"strings"
+	"sync"
 
-	"github.com/nxadm/tail/watch"
-	"github.com/pkg/errors"
 	"go-micro.dev/v4/logger"
-	"go-micro.dev/v4/util/kubernetes/api"
+
+	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/registry/kubernetes/client/api"
+	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/registry/kubernetes/client/watch"
 )
 
 var (
 	serviceAccountPath = "/var/run/secrets/kubernetes.io/serviceaccount"
 
-	// ErrReadNamespace error when failed to read namespace.
 	ErrReadNamespace = errors.New("could not read namespace from service account secret")
 )
 
-// Client ...
+type tokenFileTransport struct {
+	tokenPath string
+	wrapped   http.RoundTripper
+
+	mu    sync.RWMutex
+	token string
+}
+
+func (t *tokenFileTransport) cachedToken() string {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+	return t.token
+}
+
+func (t *tokenFileTransport) refreshToken() (string, error) {
+	raw, err := os.ReadFile(t.tokenPath)
+	if err != nil {
+		return "", fmt.Errorf("kubernetes: failed to refresh service account token: %w", err)
+	}
+
+	tok := strings.TrimSpace(string(raw))
+
+	t.mu.Lock()
+	t.token = tok
+	t.mu.Unlock()
+
+	return tok, nil
+}
+
+func (t *tokenFileTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	r2 := req.Clone(req.Context())
+	r2.Header.Set("Authorization", "Bearer "+t.cachedToken())
+
+	resp, err := t.wrapped.RoundTrip(r2)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusUnauthorized {
+		return resp, nil
+	}
+
+	resp.Body.Close()
+
+	newTok, err := t.refreshToken()
+	if err != nil {
+		return nil, err
+	}
+
+	r3 := req.Clone(req.Context())
+	r3.Header.Set("Authorization", "Bearer "+newTok)
+
+	if req.GetBody != nil {
+		body, err := req.GetBody()
+		if err != nil {
+			return nil, fmt.Errorf("kubernetes: failed to rebuild request body for retry: %w", err)
+		}
+		r3.Body = body
+	}
+
+	return t.wrapped.RoundTrip(r3)
+}
+
 type client struct {
 	opts *api.Options
 }
 
-// NewClientByHost sets up a client by host.
 func NewClientByHost(host string) Kubernetes {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -47,9 +111,6 @@ func NewClientByHost(host string) Kubernetes {
 	}
 }
 
-// NewClientInCluster should work similarly to the official api
-// NewInClient by setting up a client configuration for use within
-// a k8s pod.
 func NewClientInCluster() Kubernetes {
 	host := "https://" + os.Getenv("KUBERNETES_SERVICE_HOST") + ":" + os.Getenv("KUBERNETES_SERVICE_PORT")
 
@@ -62,12 +123,12 @@ func NewClientInCluster() Kubernetes {
 		logger.Fatal(errors.New("no k8s service account found"))
 	}
 
-	t, err := os.ReadFile(path.Join(serviceAccountPath, "token"))
+	tokenPath := path.Join(serviceAccountPath, "token")
+
+	t, err := os.ReadFile(tokenPath)
 	if err != nil {
 		logger.Fatal(err)
 	}
-
-	token := string(t)
 
 	ns, err := detectNamespace()
 	if err != nil {
@@ -80,26 +141,28 @@ func NewClientInCluster() Kubernetes {
 	}
 
 	c := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				RootCAs:    crt,
-				MinVersion: tls.VersionTLS12,
+		Transport: &tokenFileTransport{
+			tokenPath: tokenPath,
+			token:     strings.TrimSpace(string(t)),
+			wrapped: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					RootCAs:    crt,
+					MinVersion: tls.VersionTLS12,
+				},
+				DisableCompression: true,
 			},
-			DisableCompression: true,
 		},
 	}
 
 	return &client{
 		opts: &api.Options{
-			Client:      c,
-			Host:        host,
-			Namespace:   ns,
-			BearerToken: &token,
+			Client:    c,
+			Host:      host,
+			Namespace: ns,
 		},
 	}
 }
 
-// ListPods ...
 func (c *client) ListPods(labels map[string]string) (*PodList, error) {
 	var pods PodList
 	err := api.NewRequest(c.opts).Get().Resource("pods").Params(&api.Params{LabelSelector: labels}).Do().Decode(&pods)
@@ -107,7 +170,6 @@ func (c *client) ListPods(labels map[string]string) (*PodList, error) {
 	return &pods, err
 }
 
-// UpdatePod ...
 func (c *client) UpdatePod(name string, p *Pod) (*Pod, error) {
 	var pod Pod
 	err := api.NewRequest(c.opts).Patch().Resource("pods").Name(name).Body(p).Do().Decode(&pod)
@@ -115,7 +177,6 @@ func (c *client) UpdatePod(name string, p *Pod) (*Pod, error) {
 	return &pod, err
 }
 
-// WatchPods ...
 func (c *client) WatchPods(labels map[string]string) (watch.Watch, error) {
 	return api.NewRequest(c.opts).Get().Resource("pods").Params(&api.Params{LabelSelector: labels}).Watch()
 }
@@ -123,14 +184,12 @@ func (c *client) WatchPods(labels map[string]string) (watch.Watch, error) {
 func detectNamespace() (string, error) {
 	nsPath := path.Join(serviceAccountPath, "namespace")
 
-	// Make sure it's a file and we can read it
 	if s, err := os.Stat(nsPath); err != nil {
 		return "", err
 	} else if s.IsDir() {
 		return "", ErrReadNamespace
 	}
 
-	// Read the file, and cast to a string
 	ns, err := os.ReadFile(path.Clean(nsPath))
 	if err != nil {
 		return string(ns), err
