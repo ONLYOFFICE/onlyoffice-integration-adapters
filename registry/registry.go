@@ -25,9 +25,9 @@ package registry
 
 import (
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/config"
+	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/registry/kubernetes"
 	"github.com/go-micro/plugins/v4/registry/consul"
 	"github.com/go-micro/plugins/v4/registry/etcd"
-	"github.com/go-micro/plugins/v4/registry/kubernetes"
 	"github.com/go-micro/plugins/v4/registry/mdns"
 	"go-micro.dev/v4/registry"
 	"go-micro.dev/v4/registry/cache"

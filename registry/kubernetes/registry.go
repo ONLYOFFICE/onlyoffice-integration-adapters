@@ -16,15 +16,6 @@
  *
  */
 
-// This file provides a Kubernetes registry implementation that re-reads the
-// service account token from disk before every API request.
-//
-// The upstream go-micro kubernetes plugin (github.com/go-micro/plugins/v4/registry/kubernetes)
-// reads the token once at startup. Starting with Kubernetes 1.35 the projected
-// service account token TTL was shortened to 24 h, so the cached token becomes
-// stale and every pod that runs longer than a day starts receiving 401 errors.
-// The upstream project has not addressed the issue, so we maintain our own
-// implementation here.
 package kubernetes
 
 import (
@@ -40,7 +31,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/go-micro/plugins/v4/registry/kubernetes/client"
+	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/registry/kubernetes/client"
 )
 
 type kregistry struct {
@@ -50,32 +41,24 @@ type kregistry struct {
 }
 
 var (
-	// used on pods as labels & services to select
-	// eg: svcSelectorPrefix+"svc.name"
 	svcSelectorPrefix = "micro.mu/selector-"
 	svcSelectorValue  = "service"
 
 	labelTypeKey          = "micro.mu/type"
 	labelTypeValueService = "service"
 
-	// used on k8s services to scope a serialized
-	// micro service by pod name.
 	annotationServiceKeyPrefix = "micro.mu/service-"
 
-	// Pod status.
 	podRunning = "Running"
 
-	// label name regex.
 	labelRe = regexp.MustCompilePOSIX("[-A-Za-z0-9_.]")
 )
 
-// Err are all package errors.
 var (
 	ErrNoHostname   = errors.New("failed to get podname from HOSTNAME variable")
 	ErrNoNodesFound = errors.New("you must provide at least one node")
 )
 
-// podSelector.
 var podSelector = map[string]string{
 	labelTypeKey: labelTypeValueService,
 }
@@ -89,7 +72,6 @@ func configure(k *kregistry, opts ...registry.Option) error {
 		o(&k.options)
 	}
 
-	// get first host
 	var host string
 	if len(k.options.Addrs) > 0 && len(k.options.Addrs[0]) > 0 {
 		host = k.options.Addrs[0]
@@ -99,7 +81,6 @@ func configure(k *kregistry, opts ...registry.Option) error {
 		k.options.Timeout = time.Second * 1
 	}
 
-	// if no hosts setup, assume InCluster
 	var c client.Kubernetes
 	if len(host) == 0 {
 		c = client.NewClientInCluster()
@@ -113,7 +94,6 @@ func configure(k *kregistry, opts ...registry.Option) error {
 	return nil
 }
 
-// serviceName generates a valid service name for k8s labels.
 func serviceName(name string) string {
 	aname := make([]byte, len(name))
 
@@ -129,18 +109,14 @@ func serviceName(name string) string {
 	return string(aname)
 }
 
-// Init allows reconfig of options.
 func (c *kregistry) Init(opts ...registry.Option) error {
 	return configure(c, opts...)
 }
 
-// Options returns the registry Options.
 func (c *kregistry) Options() registry.Options {
 	return c.options
 }
 
-// Register sets a service selector label and an annotation with a
-// serialized version of the service passed in.
 func (c *kregistry) Register(s *registry.Service, opts ...registry.RegisterOption) error {
 	if len(s.Nodes) == 0 {
 		return ErrNoNodesFound
@@ -148,13 +124,11 @@ func (c *kregistry) Register(s *registry.Service, opts ...registry.RegisterOptio
 
 	svcName := s.Name
 
-	// TODO: grab podname from somewhere better than this.
 	podName, err := getPodName()
 	if err != nil {
 		return errors.Wrap(err, "failed to register")
 	}
 
-	// encode micro service
 	b, err := json.Marshal(s)
 	if err != nil {
 		return err
@@ -181,7 +155,6 @@ func (c *kregistry) Register(s *registry.Service, opts ...registry.RegisterOptio
 	return nil
 }
 
-// Deregister nils out any things set in Register.
 func (c *kregistry) Deregister(s *registry.Service, opts ...registry.DeregisterOption) error {
 	if len(s.Nodes) == 0 {
 		return ErrNoNodesFound
@@ -189,7 +162,6 @@ func (c *kregistry) Deregister(s *registry.Service, opts ...registry.DeregisterO
 
 	svcName := s.Name
 
-	// TODO: grab podname from somewhere better than env var.
 	podName, err := getPodName()
 	if err != nil {
 		return errors.Wrap(err, "failed to deregister")
@@ -213,8 +185,6 @@ func (c *kregistry) Deregister(s *registry.Service, opts ...registry.DeregisterO
 	return nil
 }
 
-// GetService will get all the pods with the given service selector,
-// and build services from the annotations.
 func (c *kregistry) GetService(name string, opts ...registry.GetOption) ([]*registry.Service, error) {
 	pods, err := c.client.ListPods(map[string]string{
 		svcSelectorPrefix + serviceName(name): svcSelectorValue,
@@ -227,15 +197,13 @@ func (c *kregistry) GetService(name string, opts ...registry.GetOption) ([]*regi
 		return nil, registry.ErrNotFound
 	}
 
-	// svcs mapped by version
 	svcs := make(map[string]*registry.Service)
 
-	// loop through items
 	for _, pod := range pods.Items {
 		if pod.Status.Phase != podRunning || pod.Metadata.DeletionTimestamp != "" {
 			continue
 		}
-		// get serialized service from annotation
+
 		svcStr, ok := pod.Metadata.Annotations[annotationServiceKeyPrefix+serviceName(name)]
 		if !ok {
 			continue
@@ -243,13 +211,11 @@ func (c *kregistry) GetService(name string, opts ...registry.GetOption) ([]*regi
 
 		var svc registry.Service
 
-		// unmarshal service string
 		err := json.Unmarshal([]byte(*svcStr), &svc)
 		if err != nil {
 			return nil, fmt.Errorf("could not unmarshal service '%s' from pod annotation", name)
 		}
 
-		// merge up pod service & ip with versioned service.
 		vs, ok := svcs[svc.Version]
 		if !ok {
 			svcs[svc.Version] = &svc
@@ -267,14 +233,12 @@ func (c *kregistry) GetService(name string, opts ...registry.GetOption) ([]*regi
 	return list, nil
 }
 
-// ListServices will list all the service names.
 func (c *kregistry) ListServices(opts ...registry.ListOption) ([]*registry.Service, error) {
 	pods, err := c.client.ListPods(podSelector)
 	if err != nil {
 		return nil, err
 	}
 
-	// svcs mapped by name+version
 	svcs := make(map[string]*registry.Service)
 
 	for _, pod := range pods.Items {
@@ -287,8 +251,6 @@ func (c *kregistry) ListServices(opts ...registry.ListOption) ([]*registry.Servi
 				continue
 			}
 
-			// we have to unmarshal the annotation itself since the
-			// key is encoded to match the regex restriction.
 			var svc registry.Service
 			if err := json.Unmarshal([]byte(*v), &svc); err != nil {
 				continue
@@ -300,7 +262,6 @@ func (c *kregistry) ListServices(opts ...registry.ListOption) ([]*registry.Servi
 				continue
 			}
 
-			// append to service:version nodes
 			s.Nodes = append(s.Nodes, svc.Nodes...)
 		}
 	}
@@ -316,7 +277,6 @@ func (c *kregistry) ListServices(opts ...registry.ListOption) ([]*registry.Servi
 	return list, nil
 }
 
-// Watch returns a kubernetes watcher.
 func (c *kregistry) Watch(opts ...registry.WatchOption) (registry.Watcher, error) {
 	return newWatcher(c, opts...)
 }
@@ -325,7 +285,6 @@ func (c *kregistry) String() string {
 	return "kubernetes"
 }
 
-// NewRegistry creates a kubernetes registry.
 func NewRegistry(opts ...registry.Option) registry.Registry {
 	k := &kregistry{
 		options: registry.Options{},
