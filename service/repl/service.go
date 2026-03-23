@@ -48,7 +48,7 @@ func NewService(
 	mux := http.NewServeMux()
 	h, _ := health.New(health.WithComponent(health.Component{
 		Name:    fmt.Sprintf("%s:%s", replConfig.Namespace, replConfig.Name),
-		Version: fmt.Sprintf("v%d", replConfig.Version),
+		Version: fmt.Sprintf("v%s", replConfig.Version),
 	}))
 
 	mux.Handle("/metrics", promhttp.Handler())
