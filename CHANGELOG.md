@@ -8,6 +8,7 @@
 - http services are built on `go-micro.dev/v5/web`: `service/http.NewService` returns `web.Service` instead of `micro.Service`
 - bootstrapper runs either an rpc `micro.Service` or an http `web.Service`
 - opentelemetry call wrapper is applied to the shared go-micro client in http services
+- bumped Go to 1.26.7 and dependencies
 
 ### Removed
 - `github.com/go-micro/plugins/v4` dependencies, including the http server plugin
