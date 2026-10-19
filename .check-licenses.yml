@@ -1,0 +1,19 @@
+---
+- - :approve
+  - github.com/hashicorp/consul/api
+  - :who:
+    :why: BSL
+    :versions: []
+    :when: 2026-10-19 08:14:25.144307000 Z
+- - :approve
+  - github.com/hashicorp/golang-lru
+  - :who:
+    :why: Mozilla Public License 2.0
+    :versions: []
+    :when: 2026-10-19 08:14:25.144307000 Z
+- - :approve
+  - github.com/hashicorp/serf
+  - :who:
+    :why: Mozilla Public License 2.0
+    :versions: []
+    :when: 2026-10-19 08:14:25.144307000 Z
