@@ -35,7 +35,6 @@ import (
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/resilience"
 	"github.com/micro/plugins/v5/wrapper/breaker/hystrix"
 	rlimiter "github.com/micro/plugins/v5/wrapper/ratelimiter/uber"
-	"github.com/micro/plugins/v5/wrapper/select/roundrobin"
 	"go-micro.dev/v5"
 	"go-micro.dev/v5/cache"
 	"go-micro.dev/v5/client"
@@ -112,8 +111,6 @@ func NewService(
 		micro.Broker(broker.Broker),
 		micro.Client(client),
 		micro.WrapClient(
-			roundrobin.NewClientWrapper(),
-			hystrix.NewClientWrapper(),
 			opentelemetry.NewClientWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
 		),
 		micro.WrapSubscriber(opentelemetry.NewSubscriberWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider()))),

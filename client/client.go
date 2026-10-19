@@ -26,6 +26,8 @@ package client
 
 import (
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/messaging"
+	"github.com/micro/plugins/v5/wrapper/breaker/hystrix"
+	"github.com/micro/plugins/v5/wrapper/select/roundrobin"
 	"go-micro.dev/v5/client"
 	"go-micro.dev/v5/registry"
 )
@@ -35,12 +37,17 @@ import (
 //
 // Returns a go-micro compliant client implementation based
 // on registry and broker configuration. By default uses in-memory
-// registry and broker implementations
+// registry and broker implementations. Calls are load-balanced with
+// round robin and protected by a hystrix circuit breaker, configured by
+// the http and rpc services. Wrappers must be passed here: go-micro applies
+// them only when a client is constructed, not on Init.
 func NewClient(
 	registry registry.Registry, broker messaging.BrokerWithOptions,
 ) client.Client {
 	return client.NewClient(
 		client.Registry(registry),
 		client.Broker(broker.Broker),
+		client.Wrap(roundrobin.NewClientWrapper()),
+		client.Wrap(hystrix.NewClientWrapper()),
 	)
 }
