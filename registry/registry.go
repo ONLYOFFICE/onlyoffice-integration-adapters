@@ -26,11 +26,10 @@ package registry
 import (
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/config"
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/registry/kubernetes"
-	"github.com/go-micro/plugins/v4/registry/consul"
-	"github.com/go-micro/plugins/v4/registry/etcd"
-	"github.com/go-micro/plugins/v4/registry/mdns"
-	"go-micro.dev/v4/registry"
-	"go-micro.dev/v4/registry/cache"
+	"go-micro.dev/v5/registry"
+	"go-micro.dev/v5/registry/cache"
+	"go-micro.dev/v5/registry/consul"
+	"go-micro.dev/v5/registry/etcd"
 )
 
 // NewRegistry looks up envs and configures respective registries based on those variables. Defaults to memory
@@ -42,19 +41,19 @@ func NewRegistry(config *config.RegistryConfig) registry.Registry {
 			registry.Addrs(config.Registry.Addresses...),
 		)
 	case 2:
-		r = consul.NewRegistry(
+		r = consul.NewConsulRegistry(
 			registry.Addrs(config.Registry.Addresses...),
 		)
 	case 3:
-		r = etcd.NewRegistry(
+		r = etcd.NewEtcdRegistry(
 			registry.Addrs(config.Registry.Addresses...),
 		)
 	case 4:
-		r = mdns.NewRegistry(
+		r = registry.NewMDNSRegistry(
 			registry.Addrs(config.Registry.Addresses...),
 		)
 	default:
-		r = mdns.NewRegistry(
+		r = registry.NewMDNSRegistry(
 			registry.Addrs(config.Registry.Addresses...),
 		)
 	}

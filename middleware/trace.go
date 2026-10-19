@@ -24,13 +24,13 @@ package middleware
 import (
 	"net/http"
 
-	"go-micro.dev/v4/metadata"
+	"go-micro.dev/v5/metadata"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 )
 
 const (
-	InstrumentationName = "github.com/go-micro/plugins/v4/wrapper/trace/opentelemetry"
+	InstrumentationName = "github.com/micro/plugins/v5/wrapper/trace/opentelemetry"
 )
 
 // TracePropagationMiddleware inject previous context into a new request

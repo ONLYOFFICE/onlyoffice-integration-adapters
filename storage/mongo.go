@@ -29,7 +29,7 @@ import (
 	"time"
 
 	"github.com/kamva/mgm/v3"
-	"go-micro.dev/v4/store"
+	"go-micro.dev/v5/store"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

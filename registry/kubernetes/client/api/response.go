@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/pkg/errors"
-	log "go-micro.dev/v4/logger"
+	log "go-micro.dev/v5/logger"
 )
 
 var (

@@ -26,8 +26,8 @@ package client
 
 import (
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/messaging"
-	"go-micro.dev/v4/client"
-	"go-micro.dev/v4/registry"
+	"go-micro.dev/v5/client"
+	"go-micro.dev/v5/registry"
 )
 
 // A go-micro client.Client constructor. Called automatically by fx and

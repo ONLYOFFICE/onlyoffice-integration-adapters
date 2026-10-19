@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"go-micro.dev/v4/logger"
+	"go-micro.dev/v5/logger"
 
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/registry/kubernetes/client/api"
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/registry/kubernetes/client/watch"

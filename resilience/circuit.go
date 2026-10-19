@@ -21,7 +21,7 @@ package resilience
 
 import (
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/config"
-	"github.com/go-micro/plugins/v4/wrapper/breaker/hystrix"
+	"github.com/micro/plugins/v5/wrapper/breaker/hystrix"
 )
 
 // A BuildHystrixCommandConfig takes resilience configuration and configures

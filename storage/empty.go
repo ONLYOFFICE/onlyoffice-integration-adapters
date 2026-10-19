@@ -27,7 +27,7 @@ package storage
 import (
 	"context"
 
-	"go-micro.dev/v4/store"
+	"go-micro.dev/v5/store"
 )
 
 type emptyStore struct {

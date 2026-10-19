@@ -24,8 +24,8 @@ import (
 	"strings"
 	"sync"
 
-	"go-micro.dev/v4/logger"
-	"go-micro.dev/v4/registry"
+	"go-micro.dev/v5/logger"
+	"go-micro.dev/v5/registry"
 
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/registry/kubernetes/client"
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/registry/kubernetes/client/watch"
