@@ -33,15 +33,14 @@ import (
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/messaging"
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/middleware/wrapper"
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/resilience"
-	"github.com/go-micro/plugins/v4/wrapper/breaker/hystrix"
-	rlimiter "github.com/go-micro/plugins/v4/wrapper/ratelimiter/uber"
-	"github.com/go-micro/plugins/v4/wrapper/select/roundrobin"
-	"github.com/go-micro/plugins/v4/wrapper/trace/opentelemetry"
-	"go-micro.dev/v4"
-	"go-micro.dev/v4/cache"
-	"go-micro.dev/v4/client"
-	"go-micro.dev/v4/registry"
-	"go-micro.dev/v4/server"
+	"github.com/micro/plugins/v5/wrapper/breaker/hystrix"
+	rlimiter "github.com/micro/plugins/v5/wrapper/ratelimiter/uber"
+	"go-micro.dev/v5"
+	"go-micro.dev/v5/cache"
+	"go-micro.dev/v5/client"
+	"go-micro.dev/v5/registry"
+	"go-micro.dev/v5/server"
+	"go-micro.dev/v5/wrapper/trace/opentelemetry"
 	"go.opentelemetry.io/otel"
 	oteltrace "go.opentelemetry.io/otel/sdk/trace"
 	uber "go.uber.org/ratelimit"
@@ -112,8 +111,6 @@ func NewService(
 		micro.Broker(broker.Broker),
 		micro.Client(client),
 		micro.WrapClient(
-			roundrobin.NewClientWrapper(),
-			hystrix.NewClientWrapper(),
 			opentelemetry.NewClientWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
 		),
 		micro.WrapSubscriber(opentelemetry.NewSubscriberWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider()))),

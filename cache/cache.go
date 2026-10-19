@@ -30,7 +30,7 @@ import (
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/config"
 	"github.com/eko/gocache/lib/v4/marshaler"
 	"github.com/eko/gocache/lib/v4/store"
-	"go-micro.dev/v4/cache"
+	"go-micro.dev/v5/cache"
 )
 
 // A CustomCache provides go-micro compatible interface for

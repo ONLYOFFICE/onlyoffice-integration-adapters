@@ -25,11 +25,10 @@ package messaging
 
 import (
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/config"
-	"github.com/go-micro/plugins/v4/broker/memory"
-	"github.com/go-micro/plugins/v4/broker/nats"
-	"github.com/go-micro/plugins/v4/broker/rabbitmq"
-	"go-micro.dev/v4/broker"
-	"go-micro.dev/v4/registry"
+	"go-micro.dev/v5/broker"
+	"go-micro.dev/v5/broker/nats"
+	"go-micro.dev/v5/broker/rabbitmq"
+	"go-micro.dev/v5/registry"
 )
 
 // A BrokerWithOptions embeds go-micro compatible broker
@@ -54,7 +53,7 @@ func NewBroker(registry registry.Registry, config *config.BrokerConfig) BrokerWi
 	var subOpts broker.SubscribeOptions
 
 	if !config.Messaging.Enable {
-		b = memory.NewBroker(bo...)
+		b = broker.NewMemoryBroker(bo...)
 		return BrokerWithOptions{
 			Broker:     b,
 			SubOptions: subOpts,
@@ -85,9 +84,9 @@ func NewBroker(registry registry.Registry, config *config.BrokerConfig) BrokerWi
 
 		subOpts = broker.NewSubscribeOptions(opts...)
 	case 2:
-		b = nats.NewBroker(bo...)
+		b = nats.NewNatsBroker(bo...)
 	default:
-		b = memory.NewBroker(bo...)
+		b = broker.NewMemoryBroker(bo...)
 	}
 
 	return BrokerWithOptions{

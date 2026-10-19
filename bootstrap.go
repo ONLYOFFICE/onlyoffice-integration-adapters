@@ -35,7 +35,8 @@ import (
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/storage"
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/trace"
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/worker"
-	"go-micro.dev/v4"
+	"go-micro.dev/v5"
+	"go-micro.dev/v5/web"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"golang.org/x/sync/errgroup"
@@ -67,6 +68,13 @@ func WithModules(val ...interface{}) option {
 	return func(o *options) {
 		o.modules = val
 	}
+}
+
+type runnables struct {
+	fx.In
+
+	RPC micro.Service `optional:"true"`
+	Web web.Service   `optional:"true"`
 }
 
 type bootstrapper struct {
@@ -128,11 +136,18 @@ func (b bootstrapper) Bootstrap() *fx.App {
 		fx.Provide(storage.NewStorage),
 		fx.Provide(b.modules...),
 		fx.Invoke(b.invokables...),
-		fx.Invoke(func(lifecycle fx.Lifecycle, service micro.Service, repl *http.Server, logger log.Logger) {
+		fx.Invoke(func(lifecycle fx.Lifecycle, services runnables, repl *http.Server, logger log.Logger) {
 			lifecycle.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
 					go repl.ListenAndServe()
-					go service.Run()
+					if services.RPC != nil {
+						go services.RPC.Run()
+					}
+
+					if services.Web != nil {
+						go services.Web.Run()
+					}
+
 					return nil
 				},
 				OnStop: func(ctx context.Context) error {
@@ -140,6 +155,7 @@ func (b bootstrapper) Bootstrap() *fx.App {
 					g.Go(func() error {
 						return repl.Shutdown(gCtx)
 					})
+
 					return g.Wait()
 				},
 			})

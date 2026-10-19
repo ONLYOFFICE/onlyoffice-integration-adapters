@@ -28,8 +28,8 @@ import (
 	"strings"
 
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/middleware"
-	"go-micro.dev/v4/metadata"
-	"go-micro.dev/v4/server"
+	"go-micro.dev/v5/metadata"
+	"go-micro.dev/v5/server"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 )

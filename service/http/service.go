@@ -36,15 +36,11 @@ import (
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/middleware"
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/resilience"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
-	mserver "github.com/go-micro/plugins/v4/server/http"
-	"github.com/go-micro/plugins/v4/wrapper/breaker/hystrix"
-	"github.com/go-micro/plugins/v4/wrapper/select/roundrobin"
-	"github.com/go-micro/plugins/v4/wrapper/trace/opentelemetry"
-	"go-micro.dev/v4"
-	"go-micro.dev/v4/cache"
-	"go-micro.dev/v4/client"
-	"go-micro.dev/v4/registry"
-	"go-micro.dev/v4/server"
+	"github.com/micro/plugins/v5/wrapper/breaker/hystrix"
+	mclient "go-micro.dev/v5/client"
+	"go-micro.dev/v5/registry"
+	"go-micro.dev/v5/web"
+	"go-micro.dev/v5/wrapper/trace/opentelemetry"
 	"go.opentelemetry.io/otel"
 	oteltrace "go.opentelemetry.io/otel/sdk/trace"
 )
@@ -58,24 +54,23 @@ type ServerEngine interface {
 	}
 }
 
-// A micro.Service constructor. Called automatically by fx
+// A web.Service constructor. Called automatically by fx
 // if provided to a bootstrapper instance.
 //
-// Returns a fully configured and ready to use http based micro.Service.
+// Returns a fully configured and ready to use http based web.Service.
 // Panics on any error.
 func NewService(
 	engine ServerEngine,
-	client client.Client,
+	client mclient.Client,
 	registry registry.Registry,
 	broker messaging.BrokerWithOptions,
-	cache cache.Cache,
 	tracer *oteltrace.TracerProvider,
 	logger plog.Logger,
 	serverConfig *config.ServerConfig,
 	resilienceConfig *config.ResilienceConfig,
 	corsConfig *config.CORSConfig,
 	tracerConfig *config.TracerConfig,
-) micro.Service {
+) web.Service {
 	if err := broker.Broker.Init(); err != nil {
 		log.Fatalf("could not initialize a new broker instance: %s", err.Error())
 	}
@@ -86,40 +81,11 @@ func NewService(
 
 	hystrix.ConfigureDefault(resilience.BuildHystrixCommandConfig(resilienceConfig))
 
-	service := micro.NewService(
-		micro.Name(strings.Join([]string{serverConfig.Namespace, serverConfig.Name}, ":")),
-		micro.Version(serverConfig.Version),
-		micro.Context(context.Background()),
-		micro.Server(mserver.NewServer(
-			server.Name(strings.Join([]string{serverConfig.Namespace, serverConfig.Name}, ":")),
-			server.Address(serverConfig.Address),
-		)),
-		micro.Cache(cache),
-		micro.Registry(registry),
-		micro.Broker(broker.Broker),
-		micro.Client(client),
-		micro.WrapClient(
-			roundrobin.NewClientWrapper(),
-			hystrix.NewClientWrapper(),
-		),
-		micro.WrapCall(opentelemetry.NewCallWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider()))),
-		micro.RegisterTTL(30*time.Second),
-		micro.RegisterInterval(10*time.Second),
-		micro.AfterStop(func() error {
-			if tracer != nil {
-				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-				defer cancel()
-
-				if err := tracer.Shutdown(ctx); err != nil {
-					return err
-				}
-
-				return nil
-			}
-
-			return nil
-		}),
-	)
+	if err := client.Init(
+		mclient.WrapCall(opentelemetry.NewCallWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider()))),
+	); err != nil {
+		log.Fatalf("could not initialize a client instance: %s", err.Error())
+	}
 
 	if resilienceConfig.Resilience.RateLimiter.IPLimit > 0 {
 		engine.ApplyMiddleware(middleware.NewRateLimiter(resilienceConfig.Resilience.RateLimiter.IPLimit, 1*time.Second, middleware.WithKeyFuncIP))
@@ -145,12 +111,28 @@ func NewService(
 		)
 	}
 
-	if err := micro.RegisterHandler(
-		service.Server(),
-		engine.NewHandler(),
-	); err != nil {
-		log.Fatal("could not register http handler: ", err)
-	}
+	return web.NewService(
+		web.Name(strings.Join([]string{serverConfig.Namespace, serverConfig.Name}, ":")),
+		web.Version(serverConfig.Version),
+		web.Address(serverConfig.Address),
+		web.Context(context.Background()),
+		web.Registry(registry),
+		web.Handler(engine.NewHandler()),
+		web.RegisterTTL(30*time.Second),
+		web.RegisterInterval(10*time.Second),
+		web.AfterStop(func() error {
+			if tracer != nil {
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				defer cancel()
 
-	return service
+				if err := tracer.Shutdown(ctx); err != nil {
+					return err
+				}
+
+				return nil
+			}
+
+			return nil
+		}),
+	)
 }

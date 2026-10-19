@@ -31,7 +31,7 @@ import (
 	"time"
 
 	"github.com/ONLYOFFICE/onlyoffice-integration-adapters/config"
-	"go-micro.dev/v4/store"
+	"go-micro.dev/v5/store"
 )
 
 type ReadOption func(l *ReadOptions)

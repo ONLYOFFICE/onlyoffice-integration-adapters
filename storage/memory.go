@@ -27,9 +27,8 @@ package storage
 import (
 	"context"
 
-	"github.com/go-micro/plugins/v4/store/memory"
 	"github.com/mitchellh/mapstructure"
-	"go-micro.dev/v4/store"
+	"go-micro.dev/v5/store"
 )
 
 type memoryStore struct {
@@ -40,7 +39,7 @@ type memoryStore struct {
 // bootstrapper.
 func NewMemoryStore() RefinedStore {
 	return &memoryStore{
-		store: memory.NewStore(),
+		store: store.NewMemoryStore(),
 	}
 }
 

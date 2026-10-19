@@ -26,8 +26,8 @@ import (
 	"strings"
 	"time"
 
-	"go-micro.dev/v4/registry"
-	"go-micro.dev/v4/util/cmd"
+	"go-micro.dev/v5/cmd"
+	"go-micro.dev/v5/registry"
 
 	"github.com/pkg/errors"
 
